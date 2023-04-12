@@ -1,8 +1,5 @@
-#include <stdio.h>
-#include <WinSock2.h>
-
-#pragma comment (lib, "Ws2_32.lib")
+#include "client.h"
 
 int main(int argc, char* argv[]) {
-    
+    printf("Hello world");
 }
