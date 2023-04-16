@@ -30,13 +30,39 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Try to create a socket for connecting to the server
-    ptr = result;
-    ConnectSocket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
-    if (ConnectSocket == INVALID_SOCKET) {
-        printf("Error at socket(): %ld\n", WSAGetLastError());
-        freeaddrinfo(result);
-        WSACleanup();
-        return 1;
+    // Attempt to connect to an address until one succeeds
+    for (ptr = result; ptr != NULL; ptr = ptr->ai_next) {
+
+        // Create a SOCKET for connecting to server
+        ConnectSocket = socket(ptr->ai_family, ptr->ai_socktype,
+            ptr->ai_protocol);
+        if (ConnectSocket == INVALID_SOCKET) {
+            printf("socket failed with error: %ld\n", WSAGetLastError());
+            WSACleanup();
+            return 1;
+        }
+
+        // Connect to server.
+        iResult = connect(ConnectSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
+        if (iResult == SOCKET_ERROR) {
+            closesocket(ConnectSocket);
+            ConnectSocket = INVALID_SOCKET;
+            continue;
+        }
+        break; //got a connection, or none worked
     }
+
+    do {
+        char recvbuf[DEFAULT_BUFLEN];
+
+        memset(recvbuf, 0, DEFAULT_BUFLEN);
+        iResult = recvMsg(ConnectSocket, recvbuf);
+
+        if (iResult > 0) {
+            printf("Received: %s", recvbuf);
+            sendMsg(ConnectSocket, "OK");
+        }
+    } while(1);
+
+    printf("done...");
 }
