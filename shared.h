@@ -61,7 +61,7 @@ int recvMsg(SOCKET sock, char* response) {
 }
 
 int encryptBuffer(char* dest, char* src, int len) {
-    const char* secret = "malware";
+    const char secret[] = {0x05, 0x06, 0x07, 0x08};
     int encryptedBytes = 0;
     for(int i=0; i<len; i++) {
         dest[i] = src[i] ^ secret[i % strlen(secret)];

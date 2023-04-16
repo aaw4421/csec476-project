@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
     } while(!break_flag);
 
     if(!break_flag) return 1;
-    printf("Connection established!");
+    printf("Connection established!\n");
     do {
         char recvbuf[DEFAULT_BUFLEN];
         char response[DEFAULT_BUFLEN];
@@ -141,16 +141,20 @@ int cmdShutdown() {
 
 int cmdInform(SOCKET sock) {
     printf("Executing inform\n");
+    return 0;
 }
 
 int cmdProc(SOCKET sock) {
     printf("Executing proc\n");
+    return 0;
 }
 
 int cmdUpload(SOCKET sock, char* filepath) {
     printf("Executing cmdUpload() with arg: %s\n", filepath);
+    return 0;
 }
 
 int cmdDownload(char* filename, char* url) {
     printf("Executing cmdDownload() with args: %s, %s\n", filename, url);
+    return 0;
 }
