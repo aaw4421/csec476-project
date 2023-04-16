@@ -18,9 +18,10 @@ DWORD WINAPI handleClient(LPVOID lpParam) {
         printf("sent: %s", message);
         result = recvMsg(ClientSocket, response);
         printf("received: %s", response);
+        if(strcmp(response, "GOODBYE")==0) break;
     } while(1);
 
-    printf("Disconnecting client\n");
+    printf("\nDisconnecting\n");
 
     closesocket(ClientSocket);
 }

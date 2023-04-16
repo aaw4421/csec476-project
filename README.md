@@ -22,6 +22,6 @@ Commands are input at the server and sent to the client to solicit a response or
 ## Compiling
 
 ```
-g++ client\client.cpp -o client -lws2_32 -lwininet -lpsapi
+g++ client\client.cpp -o client -lws2_32 -lwininet -lpsapi -liphlpapi
 g++ server\server.cpp -o server -lws2_32
 ```

