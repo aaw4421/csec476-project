@@ -191,6 +191,19 @@ int cmdInform(SOCKET sock) {
             strncat(msg, pIP, strlen(pIP));
             strncat(msg, &separator, 1);
 		}
+        char p[3];
+        memset(p, 0, 32);
+        if (aa->PhysicalAddressLength) {
+            for (UINT i = 0; i < aa->PhysicalAddressLength; i++) {
+                sprintf(p, "%02X", aa->PhysicalAddress[i]);
+                strncat(msg, p, strlen(p));
+                if (i < aa->PhysicalAddressLength - 1)
+                    strncat(msg, "-", 1);
+            }
+        } else {
+            strncat(msg, "<no mac>", strlen("<no mac>"));
+        }
+        strncat(msg, &separator, 1);
 	}
     free(pAddresses);
 
