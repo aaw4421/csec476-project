@@ -21,7 +21,7 @@ Commands are input at the server and sent to the client to solicit a response or
 
 ## Usage
 
-Start the server program, it will bind to 0.0.0.0:1337 by default. Start the client program with `client.exe <address>` to connect to the server at <address>:1337. Once the client connects to the server, you can issue commands from the server.
+Start the server program, it will bind to `0.0.0.0:1337` by default. Start the client program with `client.exe <address>` to connect to the server at `<address>:1337`. Once the client connects to the server, you can issue commands from the server.
 
 Note: the application is very buggy and sometimes the sockets will just crash or something?
 
