@@ -1,5 +1,10 @@
 #include "..\shared.h"
 
+#include <tchar.h>
+#include <wininet.h>
+#include <iphlpapi.h>
+#include <Psapi.h>
+
 int parseCommand(SOCKET, char* input);
 int cmdShutdown();
 int cmdInform(SOCKET);

