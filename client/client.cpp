@@ -151,10 +151,38 @@ int cmdProc(SOCKET sock) {
 
 int cmdUpload(SOCKET sock, char* filepath) {
     printf("Executing cmdUpload() with arg: %s\n", filepath);
+
+    FILE* file = fopen(filepath, "r");
+    if (!file) {
+        printf("Failed to open file.");
+        closesocket(sock);
+        WSACleanup();
+        return -1;
+    }
+
+    char buffer[DEFAULT_BUFLEN];
+    int bytesRead = 0;
+    int bytesSent;
+    while ((bytesRead = fread(buffer, 1, DEFAULT_BUFLEN, file)) > 0) {
+        bytesSent = sendMsg(sock, buffer, bytesRead);
+        if (bytesSent == SOCKET_ERROR) {
+            printf("Failed to send data. Error code: %d\n", WSAGetLastError());
+            fclose(file);
+            closesocket(sock);
+            WSACleanup();
+            return 1;
+        }
+    }
+
+    fclose(file);
+
     return 0;
 }
 
 int cmdDownload(char* filename, char* url) {
     printf("Executing cmdDownload() with args: %s, %s\n", filename, url);
+
+
+
     return 0;
 }

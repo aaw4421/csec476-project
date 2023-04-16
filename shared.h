@@ -22,17 +22,22 @@
 #pragma comment (lib, "AdvApi32.lib")
 
 int sendMsg(SOCKET, char*);
+int sendMsg(SOCKET, char*, int);
 int recvMsg(SOCKET, char*);
 int encryptBuffer(char*, char*, int);
 
 int sendMsg(SOCKET sock, char* msg) {
+    sendMsg(sock, msg, strlen(msg));
+}
+
+int sendMsg(SOCKET sock, char* msg, int len) {
     int result;
 
     char enc[DEFAULT_BUFLEN];
     memset(enc, 0, DEFAULT_BUFLEN);
-    encryptBuffer(enc, msg, strlen(msg));
+    encryptBuffer(enc, msg, len);
 
-    result = send(sock, enc, strlen(msg), 0);
+    result = send(sock, enc, len, 0);
     if (result == SOCKET_ERROR) {
         printf("send failed with error: %d\n", WSAGetLastError());
         closesocket(sock);
