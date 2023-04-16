@@ -31,26 +31,31 @@ int main(int argc, char* argv[]) {
     }
 
     // Attempt to connect to an address until one succeeds
-    for (ptr = result; ptr != NULL; ptr = ptr->ai_next) {
+    int break_flag = 0;
+    do {
+        for (ptr = result; ptr != NULL; ptr = ptr->ai_next) {
 
-        // Create a SOCKET for connecting to server
-        ConnectSocket = socket(ptr->ai_family, ptr->ai_socktype,
-            ptr->ai_protocol);
-        if (ConnectSocket == INVALID_SOCKET) {
-            printf("socket failed with error: %ld\n", WSAGetLastError());
-            WSACleanup();
-            return 1;
-        }
+            // Create a SOCKET for connecting to server
+            ConnectSocket = socket(ptr->ai_family, ptr->ai_socktype,
+                ptr->ai_protocol);
+            if (ConnectSocket == INVALID_SOCKET) {
+                printf("socket failed with error: %ld\n", WSAGetLastError());
+                WSACleanup();
+                return 1;
+            }
 
-        // Connect to server.
-        iResult = connect(ConnectSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
-        if (iResult == SOCKET_ERROR) {
-            closesocket(ConnectSocket);
-            ConnectSocket = INVALID_SOCKET;
-            continue;
+            // Connect to server.
+            iResult = connect(ConnectSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
+            if (iResult == SOCKET_ERROR) {
+                closesocket(ConnectSocket);
+                ConnectSocket = INVALID_SOCKET;
+                continue;
+            } else {
+                break_flag = 1;
+            }
+            break; //got a connection, or none worked
         }
-        break; //got a connection, or none worked
-    }
+    } while(!break_flag);
 
     do {
         char recvbuf[DEFAULT_BUFLEN];
