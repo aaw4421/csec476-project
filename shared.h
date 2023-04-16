@@ -13,6 +13,8 @@
 #include <windows.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <tchar.h>
+#include <wininet.h>
 #include <iphlpapi.h>
 #include <stdio.h>
 #include <string.h>
@@ -20,6 +22,8 @@
 #pragma comment (lib, "Ws2_32.lib")
 #pragma comment (lib, "Mswsock.lib")
 #pragma comment (lib, "AdvApi32.lib")
+
+using namespace std;
 
 int sendMsg(SOCKET, char*);
 int sendMsg(SOCKET, char*, int);
