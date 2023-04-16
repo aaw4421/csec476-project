@@ -7,12 +7,15 @@
 #define DEFAULT_PORT "1337"
 #define DEFAULT_BUFLEN 1024
 #define SOMAXCONN 1
+#define MAX_ARGS 2
+#define CMD_DELIMITER "?"
 
 #include <windows.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <iphlpapi.h>
 #include <stdio.h>
+#include <string.h>
 
 #pragma comment (lib, "Ws2_32.lib")
 #pragma comment (lib, "Mswsock.lib")

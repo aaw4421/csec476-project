@@ -57,17 +57,100 @@ int main(int argc, char* argv[]) {
         }
     } while(!break_flag);
 
+    if(!break_flag) return 1;
+    printf("Connection established!");
     do {
         char recvbuf[DEFAULT_BUFLEN];
+        char response[DEFAULT_BUFLEN];
 
         memset(recvbuf, 0, DEFAULT_BUFLEN);
         iResult = recvMsg(ConnectSocket, recvbuf);
 
         if (iResult > 0) {
             printf("Received: %s", recvbuf);
-            sendMsg(ConnectSocket, "OK");
+            iResult = parseCommand(ConnectSocket, recvbuf);
+            if(iResult==0) {
+                strcpy(response, "OK");
+                sendMsg(ConnectSocket, response);
+            } else if (iResult==1) {
+                strcpy(response, "BAD COMMAND");
+                sendMsg(ConnectSocket, response);
+            } else if (iResult==2) {
+                strcpy(response, "GOODBYE");
+                sendMsg(ConnectSocket, response);
+                iResult = shutdown(ConnectSocket, SD_SEND);
+                if (iResult == SOCKET_ERROR) {
+                    printf("shutdown failed: %d\n", WSAGetLastError());
+                    closesocket(ConnectSocket);
+                    WSACleanup();
+                    return 1;
+                }
+                closesocket(ConnectSocket);
+                WSACleanup();
+                break;
+            } else {
+                return 1;
+            }
         }
     } while(1);
+}
 
-    printf("done...");
+int parseCommand(SOCKET sock, char* input) {
+    char* strippedInput = strtok(input, "\n");
+
+    char* token = strtok(strippedInput, CMD_DELIMITER);
+    char* command = token;
+    char* args[MAX_ARGS];
+
+    int argCount = 0;
+    while (token != NULL) {
+        args[argCount++] = token;
+        token = strtok(NULL, CMD_DELIMITER);
+    }
+
+    if (strcmp(command, "shutdown") == 0) {
+        return cmdShutdown();
+    } else if (strcmp(command, "inform") == 0) {
+        return cmdInform(sock);
+    } else if (strcmp(command, "proc") == 0) {
+        return cmdProc(sock);
+    } else if (strcmp(command, "upload") == 0) {
+        if (argCount == 2) {
+            return cmdUpload(sock, args[1]);
+        } else {
+            printf("Invalid arguments for upload command.\n");
+            return 1;
+        }
+    } else if (strcmp(command, "download") == 0) {
+        if (argCount == 3) {
+            return cmdDownload(args[1], args[2]);
+        } else {
+            printf("Invalid arguments for download command.\n");
+            return 1;
+        }
+    } else {
+        printf("Invalid command.\n");
+        return 1;
+    }
+}
+
+int cmdShutdown() {
+    printf("Executing shutdown\n");
+    return 2;
+}
+
+int cmdInform(SOCKET sock) {
+    printf("Executing inform\n");
+}
+
+int cmdProc(SOCKET sock) {
+    printf("Executing proc\n");
+}
+
+int cmdUpload(SOCKET sock, char* filepath) {
+    printf("Executing cmdUpload() with arg: %s\n", filepath);
+}
+
+int cmdDownload(char* filename, char* url) {
+    printf("Executing cmdDownload() with args: %s, %s\n", filename, url);
 }

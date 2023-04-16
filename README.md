@@ -9,9 +9,17 @@
 
 This project consists of two components. First, a client and server which can send and receive instructions and data. Second, an IDB file containing a fully annotated disassembly of the client. The purpose of this project is to gain a better understanding of reversing Windows programs.
 
-# Compiling
+## Commands
 
-Until I have a better solution like a makefile.
+Commands are input at the server and sent to the client to solicit a response or action. Arguments should be delimited with a `?` character.
+
+`shutdown` - shuts down the connection  
+`inform` - asks the client for information about its host device  
+`proc` - asks for a list of processes running on the client device  
+`upload?<filepath>` - asks client to send the file if it exists  
+`download?<filename>?<url>` - tells the client to download a file from `URL` and name it `filename` 
+
+## Compiling
 
 ```
 g++ client\client.cpp -o client -lws2_32
