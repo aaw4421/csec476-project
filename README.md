@@ -30,6 +30,6 @@ Note: the application is very buggy and sometimes the sockets will just crash or
 Binaries compiled on 64-bit Windows 11 with `g++.exe (MinGW.org GCC-6.3.0-1) 6.3.0`.
 
 ```
-g++ client\client.cpp -o client -lws2_32 -lwininet -lpsapi -liphlpapi
-g++ server\server.cpp -o server -lws2_32
+g++ src\client\client.cpp -o client -lws2_32 -lwininet -lpsapi -liphlpapi
+g++ src\server\server.cpp -o server -lws2_32
 ```
